@@ -3,47 +3,10 @@ require 'json'
 require 'uri'
 require 'pry-byebug'
 
-
 API_KEY = 'ac3d43316d5ad9b942f18e63be972f19'
 BASE_URL = 'https://api.themoviedb.org/3'
 
-movies = [
-  "Napoleon Dynamite",
-  "Narnia 01 - The Lion The Witch and the Wardrobe",
-  "Narnia 02 - Prince Caspian",
-  "National Treasure",
-  "National Treasure 2",
-  "National Velvet",
-  "Neverending Story, The",
-  "Night At the Museum - Battle of the Smithsonian",
-  "Nightmare Before Christmas",
-  "Noises Off!",
-  "Notebook, The",
-  "Notting Hill",
-  "Nurse Betty",
-  "Ocean's Eleven",
-  "Ocean's Twelve",
-  "Old Dogs",
-  "Pacific Rim",
-  "Pain and Gain",
-  "Paris, Je T'Aime",
-  "Patch Adams",
-  "Patriot Games",
-  "Patriot, The",
-  "Patton",
-  "Paycheck",
-  "PDQ Bach - Houston, We have a Problem",
-  "Pink Panther Strikes Again, The",
-  "PoTC 01 - Curse of the Black Pearl",
-  "PoTC 02 - Dead Man's Chest",
-  "PoTC 03 - At World's End",
-  "PoTC 04 - On Stranger Tides",
-  "Pride of the Yankees, The",
-  "Princess Bride",
-  "Public Enemies",
-  "Whale Rider",
-  "Wizard of Oz, The"
-]
+movies = STDIN.readlines(chomp: true)
 
 def get_movie_data(title)
   uri = URI("#{BASE_URL}/search/movie")
@@ -60,6 +23,7 @@ def get_movie_data(title)
   results = JSON.parse(response.body)['results']
   if results.any?
     movie = results.first
+
     return {
       title: title,
       release_year: movie['release_date'].to_s.split('-').first,
@@ -74,16 +38,30 @@ def get_movie_data(title)
     adjusted_title = title.sub(sequence_re, '')
     movie_data = get_movie_data(adjusted_title)
     movie_data[:title] = title
+
     return movie_data
   end
 
   { title: title, release_year: 'N/A', tmdb_id: 'N/A', tmdb_url: 'N/A' }
 end
 
+def table_entry(entry, opts)
+  tabs = opts[:tabs]
+
+  if entry.empty?
+    return "%s\t%s\t%s\t%s" % ["Title", "Year", "TMDB ID", "TMDB URL"] if tabs
+    return "%-50s %-10s %-10s %s" % ["Title", "Year", "TMDB ID", "TMDB URL"]
+  end
+
+  return "%s\t%s\t%s\t%s" % [entry[:title], entry[:release_year], entry[:tmdb_id], entry[:tmdb_url]] if tabs
+  "%-50s %-10s %-10s %s" % [entry[:title], entry[:release_year], entry[:tmdb_id], entry[:tmdb_url]]
+end
+
 movie_data_list = movies.map { |movie| get_movie_data(movie) }
 
 # Print as a table
-puts "%-50s %-10s %-10s %s" % ["Title", "Year", "TMDB ID", "TMDB URL"]
+tabs = true
+puts table_entry({}, header: true, tabs: tabs)
 movie_data_list.each do |data|
-  puts "%-50s %-10s %-10s %s" % [data[:title], data[:release_year], data[:tmdb_id], data[:tmdb_url]]
+  puts table_entry(data, tabs: tabs)
 end
