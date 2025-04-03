@@ -7,6 +7,13 @@ API_KEY = 'ac3d43316d5ad9b942f18e63be972f19'
 BASE_URL = 'https://api.themoviedb.org/3'
 
 movies = STDIN.readlines(chomp: true)
+tabs = ARGV.include?('-t')
+urls = ARGV.include?('-u')
+
+def get_year_from(title)
+  title[/(?<=\[).*?(?=\])/]
+end
+
 
 def get_movie_data(title)
   uri = URI("#{BASE_URL}/search/movie")
@@ -47,21 +54,29 @@ end
 
 def table_entry(entry, opts)
   tabs = opts[:tabs]
+  urls = opts[:urls]
 
-  if entry.empty?
-    return "%s\t%s\t%s\t%s" % ["Title", "Year", "TMDB ID", "TMDB URL"] if tabs
-    return "%-50s %-10s %-10s %s" % ["Title", "Year", "TMDB ID", "TMDB URL"]
+  space_format = "%-50s %-10s %-10s"
+  space_format += " %s" if urls
+  output_format = space_format
+
+  if tabs
+    tab_format = "%s\t%s\t%s"
+    tab_format += "\t%s" if urls
+    output_format = tab_format
   end
 
-  return "%s\t%s\t%s\t%s" % [entry[:title], entry[:release_year], entry[:tmdb_id], entry[:tmdb_url]] if tabs
-  "%-50s %-10s %-10s %s" % [entry[:title], entry[:release_year], entry[:tmdb_id], entry[:tmdb_url]]
+  if entry.empty?
+    return output_format % ["Title", "Year", "TMDB ID", "TMDB URL"]
+  end
+
+  output_format % [entry[:title], entry[:release_year], entry[:tmdb_id], entry[:tmdb_url]]
 end
 
 movie_data_list = movies.map { |movie| get_movie_data(movie) }
 
 # Print as a table
-tabs = true
-puts table_entry({}, header: true, tabs: tabs)
+puts table_entry({}, header: true, tabs: tabs, urls: urls)
 movie_data_list.each do |data|
-  puts table_entry(data, tabs: tabs)
+  puts table_entry(data, tabs: tabs, urls: urls)
 end
