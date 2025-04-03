@@ -15,9 +15,12 @@ def get_year_from(title)
 end
 
 
-def get_movie_data(title)
+def get_movie_data(title_info)
+  year = get_year_from(title_info)
+  title = title_info.sub("[#{year}]", '').strip
+
   uri = URI("#{BASE_URL}/search/movie")
-  params = { api_key: API_KEY, query: title }
+  params = { api_key: API_KEY, query: title, year: year }
   uri.query = URI.encode_www_form(params)
   sequence_re = /^\w+\s\d+\s- /
 
