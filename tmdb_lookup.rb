@@ -11,7 +11,7 @@ options = [
 ]
 
 def print_usage(options)
-  STDERR.puts "? Usage: #{ARGV[0]} options"
+  STDERR.puts "\nUsage: #{ARGV[0]} options"
   options.each do |opt|
     STDERR.puts " #{opt[:name]}, #{opt[:short_name]}:"
     STDERR.puts "    #{opt[:desc]}"
@@ -39,19 +39,8 @@ begin
       exit
     end
   end
-rescue GetoptLong::InvalidOption => e
-  # Catch a specific error, like an unrecognized option
-  STDERR.puts "Error: #{e.message}"
+rescue
   print_usage(options)
-  exit 1
-rescue GetoptLong::MissingArgument => e
-  # Catch a missing required argument
-  STDERR.puts "Error: #{e.message}"
-  STDERR.puts "Option requires an argument."
-  exit 1
-rescue GetoptLong::Error => e
-  # Catch any other GetoptLong error
-  STDERR.puts "Error during option parsing: #{e.message}"
   exit 1
 end
 
