@@ -2,13 +2,49 @@ require 'net/http'
 require 'json'
 require 'uri'
 require 'pry-byebug'
+require 'getoptlong'
+
+options = [
+  { name: '--help', short_name: '-h', arg_flag: GetoptLong::NO_ARGUMENT, desc: 'Print help'},
+  { name: '--tabs', short_name: '-t', arg_flag: GetoptLong::NO_ARGUMENT, desc: 'use tab separators (for | pbcopy)'},
+  { name: '--urls', short_name: '-u', arg_flag: GetoptLong::NO_ARGUMENT, desc: 'display TMDB url'}
+]
+
+def print_usage(options)
+  STDERR.puts "\nUsage: #{ARGV[0]} options"
+  options.each do |opt|
+    STDERR.puts " #{opt[:name]}, #{opt[:short_name]}:"
+    STDERR.puts "    #{opt[:desc]}"
+  end
+  STDERR.puts
+end
+
+opts = GetoptLong.new(*options.map { |opt| [ opt[:name], opt[:short_name], opt[:arg_flag] ] })
 
 API_KEY = 'ac3d43316d5ad9b942f18e63be972f19'
 BASE_URL = 'https://api.themoviedb.org/3'
 
+tabs = false
+urls = false
+
+begin
+  opts.each do |opt, arg|
+    case opt
+    when '--tabs'
+      tabs = true
+    when '--urls'
+      urls = true
+    when '--help'
+      print_usage(options)
+      exit
+    end
+  end
+rescue
+  print_usage(options)
+  exit 1
+end
+
 movies = STDIN.readlines(chomp: true)
-tabs = ARGV.include?('-t')
-urls = ARGV.include?('-u')
 
 def get_year_from(title)
   title[/(?<=\[).*?(?=\])/]
